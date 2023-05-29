@@ -13,43 +13,38 @@ let dry_wet_Slider;
 let output_level_Slider;
 
 let play_Buttons = [
-                [pause_Button, "pause", 10, column_Position_Button],
-                [play_Button, "play", 70, column_Position_Button],
-                [stop_Button, "stop", 120, column_Position_Button],
-                [skip_start_Button, "skip to start", 170, column_Position_Button],
-                [skip_end_Button, "skip to end", 260, column_Position_Button],
-                [loop_Button, "loop", 350, column_Position_Button],
-                [record_Button, "record", 400, column_Position_Button]    
+                [pause_Button, "pause", 10, column_Position_Button, player_pause],
+                [play_Button, "play", 70, column_Position_Button, player_play],
+                [stop_Button, "stop", 120, column_Position_Button, player_stop],
+                [skip_start_Button, "skip to start", 170, column_Position_Button, player_skip_start],
+                [skip_end_Button, "skip to end", 260, column_Position_Button, player_skip_end],
+                [loop_Button, "loop", 350, column_Position_Button, player_loop],
+                [record_Button, "record", 400, column_Position_Button, player_record]    
 ];
 
 let lowpass_Filter_Texts = [
-    ["low-pass filter", 20, 70],
-    ["cufoff\nfrequency", 10, 100 - 10],
-    ["resonance", 10 + 60, 100 - 10],
-    ["dry/\nwet", 10 , 100 + 180 - 10],
-    ["output\nlevel", 10 + 60, 100 + 180 - 10]    
+//    ["low-pass filter", 20, 70],
+//    ["cufoff\nfrequency", 10, 100 - 10],
+//    ["resonance", 10 + 60, 100 - 10],
+//    ["dry/\nwet", 10 , 100 + 180 - 10],
+//    ["output\nlevel", 10 + 60, 100 + 180 - 10]    
     
-//    ["cufoff frequency", 10, 100 - 10],
-//    ["resonance", 10, 150 - 10],
-//    ["dry / wet", 10, 200 - 10],
-//    ["output level", 10, 250 - 10]    
+    ["cufoff frequency", 10, 100 - 10],
+    ["resonance", 10, 150 - 10],
+    ["dry / wet", 10, 200 - 10],
+    ["output level", 10, 250 - 10]    
 ];
 
 let lowpass_Filter_Sliders = [
-    [cuf_off_Slider,      0, 20000, 10000, 10, -20 - 200, 440],
-    [resonance_Slider,    0, 1000, 50, 1, -20 - 200, 380],
-    [dry_wet_Slider,      0, 1, 0.5, 0.1, 160 - 200, 440],
-    [output_level_Slider, 0, 1, 0.5, 0.1, 160 - 200, 380]
+//    [cuf_off_Slider,      0, 20000, 10000, 10, -20 - 200, 440],
+//    [resonance_Slider,    0, 1000, 50, 1, -20 - 200, 380],
+//    [dry_wet_Slider,      0, 1, 0.5, 0.1, 160 - 200, 440],
+//    [output_level_Slider, 0, 1, 0.5, 0.1, 160 - 200, 380]
     
-//    [cuf_off_Slider, 0, 20000, 10000, 10, -180, 160],
-//    [resonance_Slider, 0, 1000, 50, 1, -180, 100],
-//    [dry_wet_Slider, 0, 1, 0.5, 0.1, 0, 160],
-//    [output_level_Slider, 0, 1, 0.5 , 0.1, 0, 100]
-    
-    //[cuf_off_Slider, 0, 20000, 10000, 10, 100, 100],
-    //[resonance_Slider, 0, 1000, 50, 1, 100, 150],
-    //[dry_wet_Slider, 0, 1, 0.5, 0.1, 100, 200],
-    //[output_level_Slider, 0, 1, 0.5 , 0.1, 100, 250]
+    [cuf_off_Slider, 0, 20000, 10000, 10, 10, 100],
+    [resonance_Slider, 0, 1000, 50, 1, 10, 150],
+    [dry_wet_Slider, 0, 1, 0.5, 0.1, 10, 200],
+    [output_level_Slider, 0, 1, 0.5 , 0.1, 10, 250]    
 ];
 
 let attack_Slider;
@@ -160,17 +155,51 @@ let total_Texts = [
     Spectrum_Texts
 ]
 
+let player;
+let recorder;
+let recording;
+let outFile;
 
+
+function preload() {
+    player = loadSound("../sounds/AfterLIKE.mp3");
+}
 
 function setup() {
   // put setup code here
     var canv = createCanvas(600, 800);
-    
     background(0, 255, 0);  
 
+    setup_GUI();
+    setup_Filters();
+}
+
+function draw() {
+  // put drawing code here
+    update_Filter_Effects();
+}
+
+let low_pass_Filter;
+function setup_Filters() {
+    //player.disconnect();
+    
+    low_pass_Filter = new p5.LowPass();
+    low_pass_Filter.process(player);
+    
+}
+
+function setup_Recorder() {
+    recorder = new p5.SoundRecorder();
+    recorder.setInput(player);
+    recording = false;
+    outFile = new p5.SoundFile();        
+}
+
+function setup_GUI() {
     for(let i=0; i<lowpass_Filter_Sliders.length; ++i) {
-        let d = createDiv();
-        d.style('transform: rotate(' + 90 + 'deg);');       
+
+//        let d = createDiv();
+//        d.style('transform: rotate(' + 90 + 'deg);');       
         lowpass_Filter_Sliders[i][0] = createSlider(
             lowpass_Filter_Sliders[i][1],
             lowpass_Filter_Sliders[i][2],
@@ -181,9 +210,13 @@ function setup() {
             lowpass_Filter_Sliders[i][5],
             lowpass_Filter_Sliders[i][6]        
         );
-        d.child(lowpass_Filter_Sliders[i][0]);
+//        d.child(lowpass_Filter_Sliders[i][0]);
+
     }
 
+    
+    
+    
     for(let i=0; i<total_Buttons.length; ++i) 
         for(let j=0;j<total_Buttons[i].length;++j) {
             total_Buttons[i][j][0] = createButton(total_Buttons[i][j][1]);
@@ -191,9 +224,11 @@ function setup() {
                 total_Buttons[i][j][2], 
                 total_Buttons[i][j][3]
             );
+            total_Buttons[i][j][0].mousePressed(total_Buttons[i][j][4]);
+            
     }
     
-    
+
     for(let i=0; i<total_Texts.length;++i)
         for(let j=0; j<total_Texts[i].length;++j) {
             text(
@@ -216,8 +251,47 @@ function setup() {
                 total_Sliders[i][j][6]            
             )
         }
+    
 }
 
-function draw() {
-  // put drawing code here
+function player_pause() {
+    player.pause();
+}
+function player_play() {
+    player.play();
+}
+function player_stop() {
+    player.stop();
+}
+function player_skip_start() {
+    player.jump(0);
+}
+function player_skip_end() {
+    player.jump(player.duration() - 1);
+}
+function player_loop() {
+    player.loop();
+}
+function player_record() {
+    if(!recording) {
+        console.log("start");
+        recording = true;
+        recorder.record(outFile);
+    }
+    else {
+        console.log("end");        
+        recording = false;
+        recorder.stop();
+        outFile.play();
+        //save(outFile, "output.wav");
+    }
+}
+function update_Filter_Effects() {
+    //console.log(lowpass_Filter_Sliders[3][0].value());
+    low_pass_Filter.set(
+        lowpass_Filter_Sliders[0][0].value(), 
+        lowpass_Filter_Sliders[1][0].value()         
+    );
+    low_pass_Filter.drywet(lowpass_Filter_Sliders[2][0].value());
+    low_pass_Filter.amp(lowpass_Filter_Sliders[3][0].value());
 }
