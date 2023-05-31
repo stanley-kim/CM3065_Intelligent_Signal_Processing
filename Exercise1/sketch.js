@@ -59,7 +59,9 @@ let dynamic_Composer_Text_Row = 170;
 
 
 let master_Volume_Slider;
-let master_Volume_Sliders = [master_Volume_Slider, 0, 1, 0.5, 0.1, 0, 0];
+let master_Volume_Sliders = [
+    [master_Volume_Slider, 0, 1, 0.5, 0.1, dynamic_Composer_Slider_Row + 200, 100]
+];
 
 
 let dynamic_Composer_Sliders = [
@@ -69,9 +71,7 @@ let dynamic_Composer_Sliders = [
     [ratio_Slider, 0, 20, 10, 1, dynamic_Composer_Slider_Row, 250],
     [threshold_Slider, -100, 0 , -50, 1, dynamic_Composer_Slider_Row, 300],
     [dry_wet2_Slider, 0, 1, 0.5, 0.1, dynamic_Composer_Slider_Row, 350],
-    [output2_Slider, 0, 1, 0.5, 0.1, dynamic_Composer_Slider_Row, 400],
-
-    [master_Volume_Slider, 0, 1, 0.5, 0.1, dynamic_Composer_Slider_Row + 200, 100]    
+    [output2_Slider, 0, 1, 0.5, 0.1, dynamic_Composer_Slider_Row, 400]
 ];
 let dynamic_Composer_Texts = [
     ["dynamic compressor", 200, 70],    
@@ -125,10 +125,10 @@ let dry_wet4_Slider;
 let output4_Slider;
 
 let Waveshaper_Distortion_Sliders = [
-    [Distortion_Amount_Slider, 0, 100, 50, 1, 270, 380 + 100 ],
-    [Oversample_Slider, 0, 100, 50, 1, 270, 380 + 100 + 50],
-    [dry_wet4_Slider, 0, 100, 50, 1, 270, 380 + 100 + 100],
-    [output4_Slider, 0, 100, 50, 1, 270, 380 + 100 + 150]        
+    [Distortion_Amount_Slider, 0, 1, 0.5, 0.1, 270, 380 + 100 ],
+    [Oversample_Slider, 0, 2, 0, 0.1, 270, 380 + 100 + 50],
+    [dry_wet4_Slider, 0, 1, 0.5, 0.1, 270, 380 + 100 + 100],
+    [output4_Slider, 0, 1, 0.5, 0.1, 270, 380 + 100 + 150]        
 ];
 
 
@@ -144,6 +144,9 @@ let total_Buttons = [
 
 let total_Sliders = [
     dynamic_Composer_Sliders,
+    
+    master_Volume_Sliders,
+    
     reverb_Sliders,
     Waveshaper_Distortion_Sliders
 ];
@@ -180,12 +183,22 @@ function draw() {
 }
 
 let low_pass_Filter;
+let Wave_Shaper_Distortion;
 function setup_Filters() {
-    //player.disconnect();
     
     low_pass_Filter = new p5.LowPass();
-    low_pass_Filter.process(player);
+    Wave_Shaper_Distortion = new p5.Distortion();
+    master_Volume = new p5.Gain();
+  
     
+    player.disconnect();
+    low_pass_Filter.disconnect();
+    low_pass_Filter.process(player);
+    Wave_Shaper_Distortion.disconnect();
+    Wave_Shaper_Distortion.process(low_pass_Filter);
+
+    master_Volume.connect();    
+    master_Volume.setInput(Wave_Shaper_Distortion);    
 }
 
 function setup_Recorder() {
@@ -294,4 +307,13 @@ function update_Filter_Effects() {
     );
     low_pass_Filter.drywet(lowpass_Filter_Sliders[2][0].value());
     low_pass_Filter.amp(lowpass_Filter_Sliders[3][0].value());
+    
+    Wave_Shaper_Distortion.set(
+        Waveshaper_Distortion_Sliders[0][0].value(),
+        Waveshaper_Distortion_Sliders[1][0].value()
+    );
+    Wave_Shaper_Distortion.drywet(Waveshaper_Distortion_Sliders[2][0].value());
+    Wave_Shaper_Distortion.amp(Waveshaper_Distortion_Sliders[3][0].value());
+    
+    master_Volume.amp(master_Volume_Sliders[0][0].value());
 }
