@@ -184,10 +184,14 @@ function draw() {
 
 let low_pass_Filter;
 let Wave_Shaper_Distortion;
+let dynamic_Compressor;
 function setup_Filters() {
     
     low_pass_Filter = new p5.LowPass();
     Wave_Shaper_Distortion = new p5.Distortion();
+    
+    dynamic_Compressor = new p5.Compressor();
+    
     master_Volume = new p5.Gain();
   
     
@@ -197,8 +201,13 @@ function setup_Filters() {
     Wave_Shaper_Distortion.disconnect();
     Wave_Shaper_Distortion.process(low_pass_Filter);
 
+    dynamic_Compressor.disconnect();
+    dynamic_Compressor.process(Wave_Shaper_Distortion);
+    
     master_Volume.connect();    
-    master_Volume.setInput(Wave_Shaper_Distortion);    
+//    master_Volume.setInput(Wave_Shaper_Distortion);    
+    master_Volume.setInput(dynamic_Compressor);    
+    
 }
 
 function setup_Recorder() {
@@ -314,6 +323,14 @@ function update_Filter_Effects() {
     );
     Wave_Shaper_Distortion.drywet(Waveshaper_Distortion_Sliders[2][0].value());
     Wave_Shaper_Distortion.amp(Waveshaper_Distortion_Sliders[3][0].value());
+    
+    dynamic_Compressor.set(
+        dynamic_Composer_Sliders[0][0].value(),
+        dynamic_Composer_Sliders[1][0].value(),        
+    );
+    dynamic_Compressor.drywet(dynamic_Composer_Sliders[5][0].value());
+    dynamic_Compressor.amp(dynamic_Composer_Sliders[6][0].value());
+    
     
     master_Volume.amp(master_Volume_Sliders[0][0].value());
 }
