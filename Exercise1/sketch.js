@@ -94,21 +94,23 @@ let reverb_Texts = [
     ["output\nlevel", 10, 380 + 100 - 10 + 200]            
 ]
 
+let isReversed = false;
 let reverse_Button;
 let reverb_Buttons = [
-    [reverse_Button, "reverse", 10, 580]    
+    [reverse_Button, "reverse", 10, 580, toggleReversed]    
 ];
 
 let reverb_Duration_Slider;
-let delay_Rate_Slider;
+let decay_Rate_Slider;
 let dry_wet3_Slider;
 let output3_Slider;
 
 let reverb_Sliders = [
-    [reverb_Duration_Slider, 0, 100, 50, 1, 10 + 50, 380 + 100 ],
-    [delay_Rate_Slider, 0, 100, 50, 1, 10 + 50, 380 + 100 + 60],
-    [dry_wet3_Slider, 0, 100, 50, 1, 10 + 50, 380 + 100 + 160],
-    [output3_Slider, 0, 100, 50, 1, 10 + 50, 380 + 100 + 200]    
+    [reverb_Duration_Slider, 0, 10, 5, 1, 10 + 50, 380 + 100 ],
+    [decay_Rate_Slider, 0, 100, 50, 10, 10 + 50, 380 + 100 + 60],
+    
+    [dry_wet3_Slider, 0, 1, 0.5, 0.1, 10 + 50, 380 + 100 + 160],
+    [output3_Slider, 0, 1, 0.5, 0.1, 10 + 50, 380 + 100 + 200]    
 ];
 
 let Waveshaper_Distortion_Texts = [
@@ -192,6 +194,7 @@ function setup_Filters() {
     
     dynamic_Compressor = new p5.Compressor();
     
+    reverb_Filter = new p5.Reverb();
     master_Volume = new p5.Gain();
   
     
@@ -204,10 +207,14 @@ function setup_Filters() {
     dynamic_Compressor.disconnect();
     dynamic_Compressor.process(Wave_Shaper_Distortion);
     
+    reverb_Filter.disconnect();
+    reverb_Filter.process(dynamic_Compressor);
+    
+    
     master_Volume.connect();    
 //    master_Volume.setInput(Wave_Shaper_Distortion);    
-    master_Volume.setInput(dynamic_Compressor);    
-    
+//    master_Volume.setInput(dynamic_Compressor);    
+    master_Volume.setInput(reverb_Filter);    
 }
 
 function setup_Recorder() {
@@ -308,6 +315,11 @@ function player_record() {
         //save(outFile, "output.wav");
     }
 }
+
+function toggleReversed() {
+    isReversed = !isReversed;
+    console.log(isReversed);    
+}
 function update_Filter_Effects() {
     //console.log(lowpass_Filter_Sliders[3][0].value());
     low_pass_Filter.set(
@@ -331,6 +343,13 @@ function update_Filter_Effects() {
     dynamic_Compressor.drywet(dynamic_Composer_Sliders[5][0].value());
     dynamic_Compressor.amp(dynamic_Composer_Sliders[6][0].value());
     
+ //   reverb_Filter.set(
+//        reverb_Sliders[0][0].value(),
+//        reverb_Sliders[1][0].value(),
+//        isReversed
+//    );
+    reverb_Filter.drywet(reverb_Sliders[2][0].value());
+    reverb_Filter.amp(reverb_Sliders[3][0].value());
     
     master_Volume.amp(master_Volume_Sliders[0][0].value());
 }
