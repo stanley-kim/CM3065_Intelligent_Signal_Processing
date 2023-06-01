@@ -135,8 +135,8 @@ let Waveshaper_Distortion_Sliders = [
 
 
 let Spectrum_Texts = [
-    ["Spectrum In", 400+20, 380 + 100 - 10],
-    ["Spectrum Out", 400+20, 380 + 100 - 10 + 100],    
+    ["Spectrum In", 400+20, 380 + 100 - 10 -50],
+    ["Spectrum Out", 400+20, 380 + 100 - 10 + 150],    
 ];
 
 let total_Buttons = [
@@ -172,7 +172,7 @@ function preload() {
 
 function setup() {
   // put setup code here
-    var canv = createCanvas(600, 800);
+    var canv = createCanvas(800, 800);
     background(0, 255, 0);  
 
     setup_GUI();
@@ -182,6 +182,7 @@ function setup() {
 function draw() {
   // put drawing code here
     update_Filter_Effects();
+    update_Spectrums();
 }
 
 let low_pass_Filter;
@@ -190,13 +191,15 @@ let dynamic_Compressor;
 function setup_Filters() {
     
     low_pass_Filter = new p5.LowPass();
-    Wave_Shaper_Distortion = new p5.Distortion();
-    
+    Wave_Shaper_Distortion = new p5.Distortion();   
     dynamic_Compressor = new p5.Compressor();
-    
     reverb_Filter = new p5.Reverb();
     master_Volume = new p5.Gain();
   
+    Spectrum_In = new p5.FFT();
+    Spectrum_Out = new p5.FFT();
+    
+    Spectrum_In.setInput(player);
     
     player.disconnect();
     low_pass_Filter.disconnect();
@@ -215,6 +218,8 @@ function setup_Filters() {
 //    master_Volume.setInput(Wave_Shaper_Distortion);    
 //    master_Volume.setInput(dynamic_Compressor);    
     master_Volume.setInput(reverb_Filter);    
+    
+    Spectrum_Out.setInput(master_Volume);
 }
 
 function setup_Recorder() {
@@ -352,4 +357,27 @@ function update_Filter_Effects() {
     reverb_Filter.amp(reverb_Sliders[3][0].value());
     
     master_Volume.amp(master_Volume_Sliders[0][0].value());
+}
+
+
+function update_Spectrums() {
+    let spectrums = [Spectrum_In, Spectrum_Out];
+    
+    for(let s_i=0; s_i<spectrums.length;++s_i) {
+        let each_spectrum = spectrums[s_i].analyze();
+        push();
+        translate(500, 420 + 200 * s_i);
+        
+        scale(0.2, 0.2);
+        noStroke();
+        fill(0);
+        rect(0, 0, width, height);
+        fill(255, 0, 0);
+        for(let i=0;i<each_spectrum.length;++i) {
+            let x = map(i, 0, each_spectrum.length, 0, width);
+            let h = -height + map(each_spectrum[i], 0, 255, height, 0);
+            rect(x, height, width / each_spectrum.length, h);
+        }
+        pop();
+    }
 }
