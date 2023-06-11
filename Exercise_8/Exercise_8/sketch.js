@@ -7,6 +7,10 @@ var sliderPan;
 
 var fft;
 
+var analyzer;
+var circleSize;
+var circleColour;
+
 function preload() {
   soundFormats('wav', 'mp3');
   mySound = loadSound('/sounds/233709__x86cam__130bpm-32-beat-loop_v2');
@@ -31,6 +35,24 @@ function setup() {
   sliderPan.position(20,115);
   
   fft = new p5.FFT(0.2, 2048);
+
+  circleSize = 0;
+  if(typeof Meyda === "undefined") {
+    console.log("Meyda could not be found!");
+  } else {
+    analyzer = Meyda.createMeydaAnalyzer({
+      "audioContext": getAudioContext(),
+      "source": mySound,
+      "bufferSize": 512, //44100 / 512 86? 
+      "featureExtractors": ["rms", "zcr"],
+      "callback": features => {
+        console.log(features);
+        circleSize = features.rms * 1000;
+        circleSize = Math.pow(features.rms * 6, 13);
+        circleColour = features.zcr;
+      }
+    });
+  }
 }
 
 function draw() {
@@ -62,11 +84,13 @@ function draw() {
   }
   pop();
     
-  fill(30, 30, 255, 200);
+  //fill(30, 30, 255, 200);
+  fill(circleColour, 300, 255);
   let treble = fft.getEnergy("treble");
   let lowMid = fft.getEnergy("lowMid");
   let mid = fft.getEnergy("mid");
   let highMid = fft.getEnergy("highMid");
+/*
   arc(200, 275, treble, treble, 0, HALF_PI);
   fill(100, 55, 255, 200);
   arc(200, 275, lowMid, lowMid, HALF_PI, PI);
@@ -74,6 +98,9 @@ function draw() {
   arc(200, 275, mid, mid, PI, PI+HALF_PI);
   fill(130, 130, 255, 200);
   arc(200, 275, highMid, highMid, PI+HALF_PI, 2*PI);
+  */
+  //circle(200, 275, lowMid);
+  circle(200, 275, circleSize);
 }
 
 function jumpSong() {
@@ -86,12 +113,14 @@ function playStopSound() {
   if (mySound.isPlaying())
     {
       mySound.stop();
+      analyzer.stop();
       //mySound.pause();
       playStopButton.html('play');
       background(180);
     } else {
       //mySound.play();
-      mySound.loop()            
+      mySound.loop();
+      analyzer.start();      
       playStopButton.html('stop');
     }  
 }
