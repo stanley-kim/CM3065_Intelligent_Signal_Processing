@@ -8,12 +8,16 @@ var sliderPan;
 var fft;
 
 var analyzer;
-var circleSize;
-var circleColour;
+var rms_Row; 
+var spectralCentroid_Color;
 
 function preload() {
-  soundFormats('wav', 'mp3');
-  mySound = loadSound('/sounds/233709__x86cam__130bpm-32-beat-loop_v2');
+//  soundFormats('wav', 'mp3');
+  soundFormats('mp3');
+
+//  mySound = loadSound('/sounds/233709__x86cam__130bpm-32-beat-loop_v2');
+//  mySound = loadSound('/sounds/Ex2_sound1');
+  mySound = loadSound('/sounds/Kalte_Ohren_(_Remix_)');
 }
 
 function setup() {
@@ -44,16 +48,26 @@ function setup() {
       "audioContext": getAudioContext(),
       "source": mySound,
       "bufferSize": 512, //44100 / 512 86? 
-      "featureExtractors": ["rms", "zcr"],
+      "featureExtractors": [
+        "rms", 
+        "zcr",
+        "amplitudeSpectrum",
+        "loudness",
+        "spectralCentroid",
+        "spectralSpread",
+        "spectralCrest"
+      ],
+
       "callback": features => {
         console.log(features);
-        circleSize = features.rms * 1000;
-        circleSize = Math.pow(features.rms * 6, 13);
-        circleColour = features.zcr;
+        rms_Row = features.rms * 3000;
+        spectralCentroid_Color = features.spectralCentroid * 50;
       }
     });
   }
 }
+
+
 
 function draw() {
   background(180, 100);
@@ -85,11 +99,14 @@ function draw() {
   pop();
     
   //fill(30, 30, 255, 200);
-  fill(circleColour, 300, 255);
+  fill(spectralCentroid_Color, 300, 255);
   let treble = fft.getEnergy("treble");
   let lowMid = fft.getEnergy("lowMid");
   let mid = fft.getEnergy("mid");
   let highMid = fft.getEnergy("highMid");
+  //arc(200, 275, circleSize, circleSize, 0, HALF_PI);
+  rect(50, 275, 50, rms_Row);
+  
 /*
   arc(200, 275, treble, treble, 0, HALF_PI);
   fill(100, 55, 255, 200);
@@ -99,8 +116,6 @@ function draw() {
   fill(130, 130, 255, 200);
   arc(200, 275, highMid, highMid, PI+HALF_PI, 2*PI);
   */
-  //circle(200, 275, lowMid);
-  circle(200, 275, circleSize);
 }
 
 function jumpSong() {
