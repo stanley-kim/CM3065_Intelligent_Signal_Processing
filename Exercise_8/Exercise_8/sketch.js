@@ -8,8 +8,13 @@ var sliderPan;
 var fft;
 
 var analyzer;
+
 var rms_Row; 
-var spectralCentroid_Color;
+var spectralCentroid_Size;
+var spectralRolloff_Color;
+
+var zcr_Color;
+var spectralFlatness_Width;
 
 function preload() {
 //  soundFormats('wav', 'mp3');
@@ -54,6 +59,8 @@ function setup() {
         "amplitudeSpectrum",
         "loudness",
         "spectralCentroid",
+        "spectralRolloff",
+        "spectralFlatness",
         "spectralSpread",
         "spectralCrest"
       ],
@@ -61,13 +68,15 @@ function setup() {
       "callback": features => {
         console.log(features);
         rms_Row = features.rms * 3000;
-        spectralCentroid_Color = features.spectralCentroid * 50;
+        spectralCentroid_Size = features.spectralCentroid * 2;
+        spectralRolloff_Color = map(features.spectralRolloff, 0, 44100 / 2, 0, 255); 
+        zcr_Color = map(features.zcr, 0, 255, 0, 255);
+        spectralFlatness_Width = map(features.spectralFlatness, 0, 1, 1, 100);
+        console.log(spectralFlatness_Width);
       }
     });
   }
 }
-
-
 
 function draw() {
   background(180, 100);
@@ -99,13 +108,14 @@ function draw() {
   pop();
     
   //fill(30, 30, 255, 200);
-  fill(spectralCentroid_Color, 300, 255);
+  //fill(spectralCentroid_Color, 300, 255);
   let treble = fft.getEnergy("treble");
   let lowMid = fft.getEnergy("lowMid");
   let mid = fft.getEnergy("mid");
   let highMid = fft.getEnergy("highMid");
   //arc(200, 275, circleSize, circleSize, 0, HALF_PI);
   ///rect(50, 275, 50, rms_Row);
+  noStroke();
   if(rms_Row > 0)
     rect(50, 270, 50, 10);
   if(rms_Row > 100)
@@ -117,6 +127,13 @@ function draw() {
   if(rms_Row > 4 * 100)
     rect(50, 350, 50, 10);
 
+  fill(spectralRolloff_Color, 300, 255);
+  rect(120, 270, 50, spectralCentroid_Size);
+
+  stroke(zcr_Color, 300, 255);
+  strokeWeight(spectralFlatness_Width);
+  rect(190, 270, 50, 50);
+  noStroke();
   
 /*
   arc(200, 275, treble, treble, 0, HALF_PI);
