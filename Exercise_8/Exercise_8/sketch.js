@@ -15,6 +15,7 @@ var spectralRolloff_Color;
 
 var zcr_Color;
 var spectralFlatness_Width;
+var spectralSpread_Alpha;
 
 function preload() {
 //  soundFormats('wav', 'mp3');
@@ -72,7 +73,9 @@ function setup() {
         spectralRolloff_Color = map(features.spectralRolloff, 0, 44100 / 2, 0, 255); 
         zcr_Color = map(features.zcr, 0, 255, 0, 255);
         spectralFlatness_Width = map(features.spectralFlatness, 0, 1, 1, 100);
-        console.log(spectralFlatness_Width);
+//        spectralSpread_Alpha = map(features.spectralSpread, 0, 512, 0, 255);
+        spectralSpread_Alpha = (features.spectralSpread * 4) % 256;
+        console.log(spectralSpread_Alpha);
       }
     });
   }
@@ -134,7 +137,13 @@ function draw() {
   strokeWeight(spectralFlatness_Width);
   rect(190, 270, 50, 50);
   noStroke();
-  
+
+//  spectralSpread_Alpha
+  var new_color = color(100, 50, 100);
+  new_color.setAlpha(spectralSpread_Alpha);
+  fill(new_color);
+  rect(250, 270, 50, 50);  
+
 /*
   arc(200, 275, treble, treble, 0, HALF_PI);
   fill(100, 55, 255, 200);
