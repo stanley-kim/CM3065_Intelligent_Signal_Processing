@@ -105,7 +105,18 @@ function draw() {
   let mid = fft.getEnergy("mid");
   let highMid = fft.getEnergy("highMid");
   //arc(200, 275, circleSize, circleSize, 0, HALF_PI);
-  rect(50, 275, 50, rms_Row);
+  ///rect(50, 275, 50, rms_Row);
+  if(rms_Row > 0)
+    rect(50, 270, 50, 10);
+  if(rms_Row > 100)
+    rect(50, 290, 50, 10);
+  if(rms_Row > 2 * 100)
+    rect(50, 310, 50, 10);
+  if(rms_Row > 3 * 100)
+    rect(50, 330, 50, 10);
+  if(rms_Row > 4 * 100)
+    rect(50, 350, 50, 10);
+
   
 /*
   arc(200, 275, treble, treble, 0, HALF_PI);
