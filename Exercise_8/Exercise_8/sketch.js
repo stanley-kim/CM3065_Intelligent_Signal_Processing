@@ -17,6 +17,10 @@ var zcr_Color;
 var spectralFlatness_Width;
 var spectralSpread_Alpha;
 
+var myRec;
+
+var bgcolor_map;
+
 function preload() {
 //  soundFormats('wav', 'mp3');
   soundFormats('mp3');
@@ -75,14 +79,38 @@ function setup() {
         spectralFlatness_Width = map(features.spectralFlatness, 0, 1, 1, 100);
 //        spectralSpread_Alpha = map(features.spectralSpread, 0, 512, 0, 255);
         spectralSpread_Alpha = (features.spectralSpread * 4) % 256;
-        console.log(spectralSpread_Alpha);
+//        console.log(spectralSpread_Alpha);
       }
     });
   }
+
+
+ let obj = {
+    'black': 'black',
+    'white': 'white',
+    'red': 'red'  
+  };
+  bgcolor_map = createStringDict(obj);
+
+  myRec = new p5.SpeechRec('en-US', parseResult);
+  myRec.continuous = true;
+  myRec.interimResults = true;
+  myRec.start();
+  console.log('Speech Recognition Start');
 }
 
+function parseResult() {
+  var mostrecentword = myRec.resultString.split(' ').pop();
+  console.log(mostrecentword);
+
+  if (bgcolor_map.hasKey(mostrecentword)) {
+    console.log(bgcolor_map[mostrecentword]);
+    background(bgcolor_map[mostrecentword]);
+  }
+
+}
 function draw() {
-  background(180, 100);
+  //background(180, 100);
 
   fill(0);
   text('volume', 80,20);
@@ -168,7 +196,7 @@ function playStopSound() {
       analyzer.stop();
       //mySound.pause();
       playStopButton.html('play');
-      background(180);
+      //background(180);
     } else {
       //mySound.play();
       mySound.loop();
