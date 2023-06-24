@@ -2,7 +2,7 @@ import wave
 
 def decode_File(FILENAME):    
     with wave.open(FILENAME, mode='rb') as music:        
-        frame_bytes = bytearray(music.readframes(music.getnframes()))    
+        frame_bytes = bytes(music.readframes(music.getnframes()))    
     bits_extracted = [frame_byte & 0x1 for frame_byte in frame_bytes]
 
     chars = []
@@ -16,4 +16,3 @@ def decode_File(FILENAME):
 
 decoded = decode_File("Ex3_sound1.wav")
 print(f'hidden message ({decoded})')
-
