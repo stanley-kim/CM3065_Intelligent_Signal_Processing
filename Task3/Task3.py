@@ -28,12 +28,11 @@ def encode_File(FILENAME, NEW_FILENAME, MESSAGE):
         music.setparams(music_params)
         music.writeframes(new_frame_bytes)
 
+SECRET_MESSAGE = 'Father Christmas does not exist'
 SOURCE_FILE = "Ex3_sound5.wav"
 MODIFIED_FILE = "modified_" + SOURCE_FILE
-SECRET_MESSAGE = 'Father Christmas does not exist'
 encode_File(SOURCE_FILE, MODIFIED_FILE, SECRET_MESSAGE)
 decoded = decode_File(MODIFIED_FILE)
 
 print(f'hidden message ({decoded})')
-
 
