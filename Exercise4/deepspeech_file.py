@@ -72,13 +72,16 @@ wavfile.write(wav_lpf, sample_rate, data1.astype(np.int16))
 
 for language  in  audio_file_transcriptions:
     for file in language[2]:
-        print(language[0] + '/' + file)
+        source_file = language[0] + '/' + file 
+        print(f'source: {source_file}')
         sample_rate, data = wavfile.read(language[0] + '/' + file)
-        b = signal.firwin(101, cutoff=5000, fs=sample_rate, pass_zero='lowpass')
+#        b = signal.firwin(101, cutoff=5000, fs=sample_rate, pass_zero='lowpass')
+        b = signal.firwin(101, cutoff=3000, fs=sample_rate, pass_zero='lowpass')
         data1 = signal.lfilter(b, [1.0], data)
         wav_lpf = language[1] + '/' + file
-        print(language[1] + '/' + file)
-        wavfile.write(wav_lpf, sample_rate, data1.astype(np.int16))
+        target_file = wav_lpf 
+        print(f'target: {target_file}')
+        wavfile.write(target_file, sample_rate, data1.astype(np.int16))
 scorer = "deepspeech-0.9.3-models.scorer"
 model = "deepspeech-0.9.3-models.pbmm"
 #audio_file = "../audio/commands.wav"
@@ -120,6 +123,7 @@ for language, model, scorer in zip(audio_file_transcriptions, language_models, l
             print(f'wer: {jiwer.wer(language[2][file], res)}')
 
         print(f'true:{language[2][file]}')
-    print(f'{sum(wers[0])/len(wers[0])}')
-    print(f'{sum(wers[1])/len(wers[1])}')
+    print('-' * 20)
+    print(f'{language[0]}: {sum(wers[0])/len(wers[0])}')
+    print(f'{language[1]}: {sum(wers[1])/len(wers[1])}')
 
