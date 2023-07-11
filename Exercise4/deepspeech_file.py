@@ -9,6 +9,8 @@ import os
 from scipy.io import wavfile
 from scipy import signal
 
+import jiwer
+
 EN_Original_Dir = 'EN'
 IT_Original_Dir = 'IT'
 ES_Original_Dir = 'ES'
@@ -103,15 +105,21 @@ for language, model, scorer in zip(audio_file_transcriptions, language_models, l
     ds.enableExternalScorer(scorer)
     desired_sample_rate = ds.sampleRate()
     print(model)
+    wers = [[], []]
     for file in language[2]:
-        for dir in language[:2]:
+        for index, dir in enumerate(language[:2]):
+
             print(dir + '/' + file)
             #audio_file = file
             audio = lr.load(dir + '/' + file, sr=desired_sample_rate)[0]
             audio = (audio * 32767).astype(np.int16) # scale from -1 to 1 to +/-32767
             res = ds.stt(audio)
             #res = ds.sttWithMetadata(audio, 1).transcripts[0]
-            print(res)                
+            print(f'pred: {res}')  
+            wers[index].append(jiwer.wer(language[2][file], res))              
+            print(f'wer: {jiwer.wer(language[2][file], res)}')
 
-        print(language[2][file])
+        print(f'true:{language[2][file]}')
+    print(f'{sum(wers[0])/len(wers[0])}')
+    print(f'{sum(wers[1])/len(wers[1])}')
 
