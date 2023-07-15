@@ -58,18 +58,14 @@ italian_transcriptions = {
 }
 spanish_transcriptions = {
     'checkin_es.wav': 'donde estan los mostradores',
-#    'checkin_es.wav': 'Donde estan los mostradores',
 #    'checkin_es.wav': '¿Dónde están los mostradores',
     'parents_es.wav': 'he perdido a mis padres',
 #    'parents_es.wav': 'He perdido a mis padres',
     'suitcase_es.wav': 'por favor he perdido mi maleta',
-#    'suitcase_es.wav': 'Por favor he perdido mi maleta',
 #    'suitcase_es.wav': 'Por favor, he perdido mi maleta',
     'what_time_es.wav': 'a que hora es mi avion',
-#    'what_time_es.wav': 'A que hora es mi avion',
 #    'what_time_es.wav': '¿A qué hora es mi avión',
     'where_es.wav': 'donde estan los restaurantes y las tiendas'
-#    'where_es.wav': 'Donde estan los restaurantes y las tiendas'
 #    'where_es.wav': '¿Dónde están los restaurantes y las tiendas'
 }
 language_models = [
@@ -138,7 +134,6 @@ def make_predictions():
                 audio = lr.load(audio_file, sr=desired_sample_rate)[0]
                 audio = (audio * 32767).astype(np.int16) # scale from -1 to 1 to +/-32767
                 res = ds.stt(audio)
-                #res = ds.sttWithMetadata(audio, 1).transcripts[0]
                 wers[dir].append(jiwer.wer(transcript, res))              
                 print(f'pred: {res} / wer: {jiwer.wer(transcript, res)}')  
                 print(f'true:{transcript}')
