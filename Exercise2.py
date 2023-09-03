@@ -60,7 +60,7 @@ def encode_File_to_File(source_filename, destination_filename, K):
 	if Len_Str % 8 > 0:
 		new_Len	= (Len_Str // 8 + 1) * 8
 		# 110001 (6) -> 1100 0100 (8)
-		encoded_Str = encoded_Str.ljust(new_Len, '0')
+		encoded_Str = encoded_Str.ljust(new_Len, '1')
 		if DEBUG_MODE:
 			print(f'encoded_Str:: {encoded_Str} / Length: {len(encoded_Str)}')
 
@@ -94,7 +94,7 @@ def decode_to_List(encoded_str, K, decoded_List):
 	starting_index = 0
 	Len_Str = len(encoded_str)
 	while True:
-		if starting_index + 1 + K >= Len_Str:
+		if starting_index + 1 + K > Len_Str:
 			break
 		q = encoded_str.find('0', starting_index)
 		if q < 0:
@@ -130,11 +130,10 @@ def decode_File_to_File(source_filename, destination_filename, K):
 		elif Len_Str <= K:
 			encoded_Str = encoded_Str_with_Zero_Padding[:starting_index]
 			break
-
 		q = encoded_Str_with_Zero_Padding.find('0', starting_index)
-#		if q < 0:
-#			print("???")
-#			break
+		if q < 0:
+			encoded_Str = encoded_Str_with_Zero_Padding[:starting_index]
+			break
 		starting_index = q + 1 + K
 		#print(f'{starting_index}', end=" ")
 #	print(f'encoded_Str: {encoded_Str} / Length {len(encoded_Str)}')	
