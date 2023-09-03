@@ -39,8 +39,8 @@ def encode_File_to_Str(filename, K):
 	for i, byte in enumerate(byteBuffer):
 		if i < NUMBERS_TO_SHOW:
 			print(f'byte[{i}]: {byte}')
-	for i in range(5):
-		print(f'byte[{i-5}]: {byteBuffer[i-5]}')
+	for i in range(NUMBERS_TO_SHOW):
+		print(f'byte[{i-NUMBERS_TO_SHOW}]: {byteBuffer[i-NUMBERS_TO_SHOW]}')
 	
 	return encode_List_to_Str(byteBuffer, K)
 
@@ -143,7 +143,7 @@ def decode_File_to_File(source_filename, destination_filename, K):
 	result_List = []
 	decode_to_List(encoded_Str, K, result_List)
 	print(f'{result_List[:NUMBERS_TO_SHOW]}')
-	print(f'{result_List[-5:]}')
+	print(f'{result_List[-NUMBERS_TO_SHOW:]}')
 
 	with open(destination_filename, 'wb') as binary_file:
 		binary_file.write( bytearray(result_List) )		
@@ -160,7 +160,7 @@ def compare_Binary_Files(filename0, filename1):
 	with open(filename1, 'rb') as file1:
 		byteArray1 = bytearray(file1.read())
 	if len(byteArray0) != len(byteArray1):
-		print('two files are different')
+		print(f'two files are different {len(byteArray0)} {len(byteArray1)}')
 		return False
 	for byte0, byte1 in zip(byteArray0, byteArray1):
 		if byte0 != byte1:
@@ -171,7 +171,7 @@ def compare_Binary_Files(filename0, filename1):
 
 S0 = 0b00010011
 S1 = 0b00010011
-K = 4
+#K = 4
 S2 = 0b0001001100010011
 S3 = 0b0001
 S4 = 0b0011
@@ -184,15 +184,18 @@ encoded_filename = 'new.hex'
 decoded_filename = 'old.wav'
 
 for original_wav_filename in ['Sound1.wav', 'Sound2.wav']:
-	encode_File_to_File(original_wave_filename0, encoded_filename, K)
-	print('end Encoding')
-	decode_File_to_File(encoded_filename, decoded_filename, K)
-	print('end Decoding')
+	for K in [2, 4]:
+		encoded_filename = original_wav_filename.split('.')[0] + '_Enc' + '.ex2'
+		decoded_filename = original_wav_filename.split('.')[0] + '_EncDec' + '.wav' 
+		encode_File_to_File(original_wav_filename, encoded_filename, K)
+		print(f'end Encoding {original_wav_filename} {K}')
+		decode_File_to_File(encoded_filename, decoded_filename, K)
+		print('end Decoding')
 
-	if compare_Binary_Files(original_wave_filename0, decoded_filename):
-		print('same files')
-	else:
-		print('different files')
+		if compare_Binary_Files(original_wav_filename, decoded_filename):
+			print(f'same files {original_wav_filename} {decoded_filename}')
+		else:
+			print(f'different files {original_wav_filename} {decoded_filename}')
 
 
 
