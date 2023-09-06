@@ -2,8 +2,14 @@
 # 1111 1000  1011 1101  0011 1110  0110 1111 00110111111000001111010100111100000111110011111110000100
 # 1111 1000  1011 1101    11 1110   110 1111  11011111100000111101011111001111111111110000100
 # 0xf8       0xbd       0x3e       0x6f
+# end Encoding 2: Sound1.wav 1002088-> Sound1_Enc.ex2 4115718
+# end Encoding 4: Sound1.wav 1002088-> Sound1_Enc.ex2 1516265
+# end Encoding 2: Sound2.wav 1008044-> Sound2_Enc.ex2 4348595
+# end Encoding 4: Sound2.wav 1008044-> Sound2_Enc.ex2 1575347
 
 import sys
+import os
+from collections import Counter
 
 DEBUG_MODE = False
 NUMBERS_TO_SHOW = 20
@@ -31,6 +37,37 @@ def encode_List_to_Str(S_List, K):
 		encoded_List.append(encode_to_Str(S, K))
 		if DEBUG_MODE and i == 20:
 			print(encoded_List)
+	c = Counter(encoded_List)
+	print(c)
+	print("-"*30)
+	if False:
+		for k in sorted(c.keys()):
+			element = c[k]
+			print(f'{k}:{element}', end=", ")
+		print(f'')
+		print("-"*30)
+		count_for_target = 0
+		for i in range(1000000):
+			encoded_Str = encode_to_Str(i, K)
+			if encoded_Str not in c:
+				print(f'{encoded_Str} not in c')
+				count_for_target = count_for_target + 1
+				if count_for_target == 5:
+					break
+		print("-"*30)
+ 
+	for k in sorted(c.keys()):
+		element = c[k]
+		if element < 3000 and len(k) < 40 // K:
+			print(f'{k}:{element}', end=", ")
+	print(f'')
+	print("="*30)
+	for k in sorted(c.keys(), reverse=True):
+		element = c[k]
+		if element > 10000 and len(k) > 40 // K:
+			print(f'{k}::{element}', end=", ")
+	print(f'')
+
 	return "".join(encoded_List)
 
 def encode_File_to_Str(filename, K):
@@ -187,7 +224,7 @@ for original_wav_filename in ['Sound1.wav', 'Sound2.wav']:
 		encoded_filename = original_wav_filename.split('.')[0] + '_Enc' + '.ex2'
 		decoded_filename = original_wav_filename.split('.')[0] + '_EncDec' + '.wav' 
 		encode_File_to_File(original_wav_filename, encoded_filename, K)
-		print(f'end Encoding {original_wav_filename} {K}')
+		print(f'end Encoding {K}: {original_wav_filename} {os.path.getsize(original_wav_filename)}-> {encoded_filename} {os.path.getsize(encoded_filename)}')
 		decode_File_to_File(encoded_filename, decoded_filename, K)
 		print('end Decoding')
 
