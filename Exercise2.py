@@ -14,27 +14,35 @@ from collections import Counter
 DEBUG_MODE = False
 NUMBERS_TO_SHOW = 20
 
-def convert_to_unary_format(q):
+def convert_Number_to_unary_format_Str(q):
 	str = ['1' for _ in range(q) ]
 	str.append('0')
 	return "".join(str)
 
-def encode_to_Str_List(S, K):
+def encode_Number_to_encoded_Str_List(S, K):
 	m = pow(2, K)
 	q = S // m
 	r = S % m
 	
-	encoded_list = [ convert_to_unary_format(q), format(r, "b").zfill(K)]
+	encoded_list = [ convert_Number_to_unary_format_Str(q), format(r, "b").zfill(K)]
 	#print('original: ' + format(S, "b")  +  ' encoded: ' + "".join(encoded_list))
 	return encoded_list
 
-def encode_to_Str(S, K):
-	return "".join(encode_to_Str_List(S, K))
+def encode_Number_to_encoded_Str(S, K):
+	return "".join(encode_Number_to_encoded_Str_List(S, K))
 
-def encode_List_to_Str(S_List, K):
+def encode_Number_List_to_encoded_Str(S_List, K):
 	encoded_List = []
 	for i, S in enumerate(S_List):
-		encoded_List.append(encode_to_Str(S, K))
+		encoded_List.append(encode_Number_to_encoded_Str(S, K))
+		if DEBUG_MODE and i == 20:
+			print(encoded_List)
+	return "".join(encoded_List)
+
+def encode_Number_List_to_encoded_Str_Dict(S_List, K):
+	encoded_List = []
+	for i, S in enumerate(S_List):
+		encoded_List.append(encode_Number_to_encoded_Str(S, K))
 		if DEBUG_MODE and i == 20:
 			print(encoded_List)
 	c = Counter(encoded_List)
@@ -48,42 +56,53 @@ def encode_List_to_Str(S_List, K):
 		print("-"*30)
 		count_for_target = 0
 		for i in range(1000000):
-			encoded_Str = encode_to_Str(i, K)
+			encoded_Str = encode_Number_to_encoded_Str(i, K)
 			if encoded_Str not in c:
 				print(f'{encoded_Str} not in c')
 				count_for_target = count_for_target + 1
 				if count_for_target == 5:
 					break
 		print("-"*30)
- 
+
+	low_freq_short_len = []
 	for k in sorted(c.keys()):
 		element = c[k]
 		if element < 3000 and len(k) < 40 // K:
 			print(f'{k}:{element}', end=", ")
+			low_freq_short_len.append(k)
 	print(f'')
 	print("="*30)
+	high_freq_long_len = []
 	for k in sorted(c.keys(), reverse=True):
 		element = c[k]
 		if element > 10000 and len(k) > 40 // K:
 			print(f'{k}::{element}', end=", ")
+			high_freq_long_len.append(k)
+	print(f'')
+	print("-"*30)
+	min_len = min(len(low_freq_short_len), len(high_freq_long_len))
+	encoded_Str_Dict = {}
+	for short_Str, long_Str, _ in zip(low_freq_short_len, high_freq_long_len, range(1)):
+		encoded_Str_Dict[short_Str] = long_Str
+		encoded_Str_Dict[long_Str] = short_Str
+	print(encoded_Str_Dict)
 	print(f'')
 
-	return "".join(encoded_List)
 
-def encode_File_to_Str(filename, K):
+def encode_File_to_Unaligned_Str(filename, K):
 	with open(filename, 'rb') as file:
 		byteBuffer = bytearray(file.read())
 	for i, byte in enumerate(byteBuffer):
 		if i < NUMBERS_TO_SHOW:
 			print(f'byte[{i}]: {byte}')
 	for i in range(NUMBERS_TO_SHOW):
-		print(f'byte[{i-NUMBERS_TO_SHOW}]: {byteBuffer[i-NUMBERS_TO_SHOW]}')
-	
-	return encode_List_to_Str(byteBuffer, K)
+		print(f'byte[{i-NUMBERS_TO_SHOW}]: {byteBuffer[i-NUMBERS_TO_SHOW]}')	
 
+	encode_Number_List_to_encoded_Str_Dict(byteBuffer, K)
+	return encode_Number_List_to_encoded_Str(byteBuffer, K)
 
 def encode_File_to_File(source_filename, destination_filename, K):
-	encoded_Str = encode_File_to_Str(source_filename, K)
+	encoded_Str = encode_File_to_Unaligned_Str(source_filename, K)
 	if not encoded_Str:
 		print(f'No encoded String')
 		return False
@@ -101,23 +120,23 @@ def encode_File_to_File(source_filename, destination_filename, K):
 		if DEBUG_MODE:
 			print(f'encoded_Str:: {encoded_Str} / Length: {len(encoded_Str)}')
 
-	encoded_Byte_Str_List = []
+	encoded_Byte_List = []
 	for i in range(0, len(encoded_Str), 8):
-		element_before = encoded_Str[i:i+8]
-		element = eval('0b' + encoded_Str[i:i+8])
-		encoded_Byte_Str_List.append(element)
+		Element_as_Str = encoded_Str[i:i+8]
+		Element_as_Byte = eval('0b' + encoded_Str[i:i+8])
+		encoded_Byte_List.append(Element_as_Byte)
 		if DEBUG_MODE:
-			print(f'{element_before} {element} {format(element, "x")}')
+			print(f'{Element_as_Str} {Element_as_Byte} {format(Element_as_Byte, "x")}')
 	if DEBUG_MODE:
-		for byte in bytearray(encoded_Byte_Str_List):
+		for byte in bytearray(encoded_Byte_List):
 			print(f'bytearray: {byte} {format(byte, "x")}')	
 	if DEBUG_MODE:
-		print(f'encoded Binary List: {encoded_Byte_Str_List}')
-		print(f'encoded Binary List: {bytearray(encoded_Byte_Str_List)}')
+		print(f'encoded Binary List: {encoded_Byte_List}')
+		print(f'encoded Binary List: {bytearray(encoded_Byte_List)}')
 
 
 	with open(destination_filename, 'wb') as binary_file:	
-		binary_file.write( bytearray(encoded_Byte_Str_List) )
+		binary_file.write( bytearray(encoded_Byte_List) )
 	return True
 		
 def decode(encoded_list, K):
