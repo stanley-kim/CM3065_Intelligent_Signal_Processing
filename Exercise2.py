@@ -14,6 +14,10 @@ from collections import Counter
 DEBUG_MODE = False
 NUMBERS_TO_SHOW = 20
 
+
+g_Dict_for_encoded_Str = {}
+g_Count = 0
+g_Count2 = 0
 def convert_Number_to_unary_format_Str(q):
 	str = ['1' for _ in range(q) ]
 	str.append('0')
@@ -29,7 +33,16 @@ def encode_Number_to_encoded_Str_List(S, K):
 	return encoded_list
 
 def encode_Number_to_encoded_Str(S, K):
-	return "".join(encode_Number_to_encoded_Str_List(S, K))
+	global g_Count
+	encoded_Str = "".join(encode_Number_to_encoded_Str_List(S, K))
+	if encoded_Str in g_Dict_for_encoded_Str:
+		prev_encoded_Str = encoded_Str
+		encoded_Str = g_Dict_for_encoded_Str[prev_encoded_Str]
+		if g_Count % 10 == 0:
+			print('encoding in g_Dict')
+			print(f'{prev_encoded_Str} -> {encoded_Str}')
+			g_Count = g_Count + 1
+	return encoded_Str
 
 def encode_Number_List_to_encoded_Str(S_List, K):
 	encoded_List = []
@@ -39,7 +52,9 @@ def encode_Number_List_to_encoded_Str(S_List, K):
 			print(encoded_List)
 	return "".join(encoded_List)
 
-def encode_Number_List_to_encoded_Str_Dict(S_List, K):
+
+def generate_Number_List_to_encoded_Str_Dict(S_List, K):
+	global g_Dict_for_encoded_Str
 	encoded_List = []
 	for i, S in enumerate(S_List):
 		encoded_List.append(encode_Number_to_encoded_Str(S, K))
@@ -68,6 +83,7 @@ def encode_Number_List_to_encoded_Str_Dict(S_List, K):
 	for k in sorted(c.keys()):
 		element = c[k]
 		if element < 3000 and len(k) < 40 // K:
+#		if element < 1000 and len(k) < 40 // K:
 			print(f'{k}:{element}', end=", ")
 			low_freq_short_len.append(k)
 	print(f'')
@@ -76,18 +92,23 @@ def encode_Number_List_to_encoded_Str_Dict(S_List, K):
 	for k in sorted(c.keys(), reverse=True):
 		element = c[k]
 		if element > 10000 and len(k) > 40 // K:
+#		if element > 1000 and len(k) > 40 // K:
 			print(f'{k}::{element}', end=", ")
 			high_freq_long_len.append(k)
 	print(f'')
 	print("-"*30)
 	min_len = min(len(low_freq_short_len), len(high_freq_long_len))
-	encoded_Str_Dict = {}
-	for short_Str, long_Str, _ in zip(low_freq_short_len, high_freq_long_len, range(1)):
-		encoded_Str_Dict[short_Str] = long_Str
-		encoded_Str_Dict[long_Str] = short_Str
-	print(encoded_Str_Dict)
-	print(f'')
+#	for short_Str, long_Str, _ in zip(low_freq_short_len, high_freq_long_len, range(1)):
+	for short_Str, long_Str in zip(low_freq_short_len, high_freq_long_len):
+		pass
+		g_Dict_for_encoded_Str[short_Str] = long_Str
+		g_Dict_for_encoded_Str[long_Str] = short_Str
+#		g_Dict_for_encoded_Str[short_Str] = short_Str
+#		g_Dict_for_encoded_Str[long_Str] = long_Str
 
+	print('g_Dict_for_encoded_Str')
+	print(g_Dict_for_encoded_Str)
+	print(f'')
 
 def encode_File_to_Unaligned_Str(filename, K):
 	with open(filename, 'rb') as file:
@@ -98,7 +119,7 @@ def encode_File_to_Unaligned_Str(filename, K):
 	for i in range(NUMBERS_TO_SHOW):
 		print(f'byte[{i-NUMBERS_TO_SHOW}]: {byteBuffer[i-NUMBERS_TO_SHOW]}')	
 
-	encode_Number_List_to_encoded_Str_Dict(byteBuffer, K)
+	generate_Number_List_to_encoded_Str_Dict(byteBuffer, K)
 	return encode_Number_List_to_encoded_Str(byteBuffer, K)
 
 def encode_File_to_File(source_filename, destination_filename, K):
@@ -134,7 +155,6 @@ def encode_File_to_File(source_filename, destination_filename, K):
 		print(f'encoded Binary List: {encoded_Byte_List}')
 		print(f'encoded Binary List: {bytearray(encoded_Byte_List)}')
 
-
 	with open(destination_filename, 'wb') as binary_file:	
 		binary_file.write( bytearray(encoded_Byte_List) )
 	return True
@@ -159,6 +179,38 @@ def decode_to_List(encoded_str, K, decoded_List):
 		r = eval('0b' + r_str)
 		decoded_List.append( (q - starting_index) * m + r)
 		starting_index = q + 1 + K 
+
+def decode_to_Byte_List2(encoded_str, K):
+	global g_Count2
+	decoded_List = []
+	m = pow(2, K)
+	starting_index = 0
+	Len_Str = len(encoded_str)
+	while True:
+		if starting_index + 1 + K > Len_Str:
+			break
+		q = encoded_str.find('0', starting_index)
+		if q < 0:
+			break
+		r_str = encoded_str[q + 1: q + 1 + K]
+
+#		if False:
+		if encoded_str[starting_index: q + 1 + K] in g_Dict_for_encoded_Str:
+			original_Str = encoded_str[starting_index: q + 1 + K]
+			new_Str = g_Dict_for_encoded_Str[original_Str]
+			if g_Count2 < 30  and len(encoded_str[starting_index: q + 1 + K]) > 20:
+				print(f'decoding {encoded_str[starting_index: q + 1 + K]} =====> {new_Str}')
+				g_Count2 = g_Count2 + 1
+			new_q = new_Str.find('0')
+			new_r_str = new_Str[new_q + 1:new_q + 1 + K]	
+			new_r = eval('0b' + new_r_str)
+			decoded_List.append( (new_q - 0) * m + new_r)
+		else:
+			r = eval('0b' + r_str)
+			decoded_List.append( (q - starting_index) * m + r)
+		
+		starting_index = q + 1 + K 
+	return decoded_List
 
 def decode_File_to_File(source_filename, destination_filename, K):
 	m = pow(2, K)
@@ -194,14 +246,14 @@ def decode_File_to_File(source_filename, destination_filename, K):
 		#print(f'{starting_index}', end=" ")
 #	print(f'encoded_Str: {encoded_Str} / Length {len(encoded_Str)}')	
 
-	print("making string finished")
-	result_List = []
-	decode_to_List(encoded_Str, K, result_List)
-	print(f'{result_List[:NUMBERS_TO_SHOW]}')
-	print(f'{result_List[-NUMBERS_TO_SHOW:]}')
+	print("making String finished")
+	Byte_List = decode_to_Byte_List2(encoded_Str, K)
+
+	print(f'{Byte_List[:NUMBERS_TO_SHOW]}')
+	print(f'{Byte_List[-NUMBERS_TO_SHOW:]}')
 
 	with open(destination_filename, 'wb') as binary_file:
-		binary_file.write( bytearray(result_List) )		
+		binary_file.write( bytearray(Byte_List) )		
 
 #def decode_to_str(encoded_str, K):
 #	m = pow(2, K)
@@ -242,6 +294,9 @@ for original_wav_filename in ['Sound1.wav', 'Sound2.wav']:
 	for K in [2, 4]:
 		encoded_filename = original_wav_filename.split('.')[0] + '_Enc' + '.ex2'
 		decoded_filename = original_wav_filename.split('.')[0] + '_EncDec' + '.wav' 
+		g_Dict_for_encoded_Str = {}	
+		g_Count = 0
+		g_Count2 = 0
 		encode_File_to_File(original_wav_filename, encoded_filename, K)
 		print(f'end Encoding {K}: {original_wav_filename} {os.path.getsize(original_wav_filename)}-> {encoded_filename} {os.path.getsize(encoded_filename)}')
 		decode_File_to_File(encoded_filename, decoded_filename, K)
