@@ -10,10 +10,10 @@
 import sys
 import os
 from collections import Counter
+import pickle
 
 DEBUG_MODE = False
 NUMBERS_TO_SHOW = 20
-
 
 g_Dict_for_encoded_Str = {}
 g_Count = 0
@@ -38,7 +38,7 @@ def encode_Number_to_encoded_Str(S, K):
 	if encoded_Str in g_Dict_for_encoded_Str:
 		prev_encoded_Str = encoded_Str
 		encoded_Str = g_Dict_for_encoded_Str[prev_encoded_Str]
-		if g_Count % 10 == 0:
+		if DEBUG_MODE and g_Count % 10 == 0:
 			print('encoding in g_Dict')
 			print(f'{prev_encoded_Str} -> {encoded_Str}')
 			g_Count = g_Count + 1
@@ -61,7 +61,8 @@ def generate_Number_List_to_encoded_Str_Dict(S_List, K):
 		if DEBUG_MODE and i == 20:
 			print(encoded_List)
 	c = Counter(encoded_List)
-	print(c)
+	if DEBUG_MODE:
+		print(c)
 	print("-"*30)
 	if False:
 		for k in sorted(c.keys()):
@@ -113,11 +114,12 @@ def generate_Number_List_to_encoded_Str_Dict(S_List, K):
 def encode_File_to_Unaligned_Str(filename, K):
 	with open(filename, 'rb') as file:
 		byteBuffer = bytearray(file.read())
-	for i, byte in enumerate(byteBuffer):
-		if i < NUMBERS_TO_SHOW:
-			print(f'byte[{i}]: {byte}')
-	for i in range(NUMBERS_TO_SHOW):
-		print(f'byte[{i-NUMBERS_TO_SHOW}]: {byteBuffer[i-NUMBERS_TO_SHOW]}')	
+	if DEBUG_MODE:
+		for i, byte in enumerate(byteBuffer):
+			if i < NUMBERS_TO_SHOW:
+				print(f'byte[{i}]: {byte}')
+		for i in range(NUMBERS_TO_SHOW):
+			print(f'byte[{i-NUMBERS_TO_SHOW}]: {byteBuffer[i-NUMBERS_TO_SHOW]}')	
 
 	generate_Number_List_to_encoded_Str_Dict(byteBuffer, K)
 	return encode_Number_List_to_encoded_Str(byteBuffer, K)
@@ -194,11 +196,10 @@ def decode_to_Byte_List2(encoded_str, K):
 			break
 		r_str = encoded_str[q + 1: q + 1 + K]
 
-#		if False:
 		if encoded_str[starting_index: q + 1 + K] in g_Dict_for_encoded_Str:
 			original_Str = encoded_str[starting_index: q + 1 + K]
 			new_Str = g_Dict_for_encoded_Str[original_Str]
-			if g_Count2 < 30  and len(encoded_str[starting_index: q + 1 + K]) > 20:
+			if DEBUG_MODE and g_Count2 < 30  and len(encoded_str[starting_index: q + 1 + K]) > 20:
 				print(f'decoding {encoded_str[starting_index: q + 1 + K]} =====> {new_Str}')
 				g_Count2 = g_Count2 + 1
 			new_q = new_Str.find('0')
@@ -254,12 +255,6 @@ def decode_File_to_File(source_filename, destination_filename, K):
 
 	with open(destination_filename, 'wb') as binary_file:
 		binary_file.write( bytearray(Byte_List) )		
-
-#def decode_to_str(encoded_str, K):
-#	m = pow(2, K)
-#	q = encoded_str.find('0')
-#	r = eval('0b' + encoded_str[q + 1: q+ 1 + K])
-#	return q * m + r
 	
 def compare_Binary_Files(filename0, filename1):
 	with open(filename0, 'rb') as file0:
@@ -291,14 +286,22 @@ encoded_filename = 'new.hex'
 decoded_filename = 'old.wav'
 
 for original_wav_filename in ['Sound1.wav', 'Sound2.wav']:
+#for original_wav_filename in ['Sound1.wav']:
 	for K in [2, 4]:
+#	for K in [2]:
 		encoded_filename = original_wav_filename.split('.')[0] + '_Enc' + '.ex2'
 		decoded_filename = original_wav_filename.split('.')[0] + '_EncDec' + '.wav' 
 		g_Dict_for_encoded_Str = {}	
 		g_Count = 0
 		g_Count2 = 0
 		encode_File_to_File(original_wav_filename, encoded_filename, K)
+		pkl_filename = 'data.pkl'
+		with open(pkl_filename, 'wb') as fp:
+			pickle.dump(g_Dict_for_encoded_Str, fp)
+		print(f'pickle data {os.path.getsize(pkl_filename)}')
 		print(f'end Encoding {K}: {original_wav_filename} {os.path.getsize(original_wav_filename)}-> {encoded_filename} {os.path.getsize(encoded_filename)}')
+		with open(pkl_filename, 'rb') as fp:
+			g_Dict_for_encoded_Str = pickle.load(fp)
 		decode_File_to_File(encoded_filename, decoded_filename, K)
 		print('end Decoding')
 
