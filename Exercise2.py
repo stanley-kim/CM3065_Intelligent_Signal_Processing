@@ -65,7 +65,6 @@ def generate_Number_List_to_encoded_Str_Dict(S_List, K):
 	for k in sorted(c.keys()):
 		element = c[k]
 		if element < 3000 and len(k) < 40 // K:
-#		if element < 1000 and len(k) < 40 // K:
 			if DEBUG_MODE:
 				print(f'{k}:{element}', end=", ")
 				print(f'')
@@ -76,7 +75,6 @@ def generate_Number_List_to_encoded_Str_Dict(S_List, K):
 	for k in sorted(c.keys(), reverse=True):
 		element = c[k]
 		if element > 10000 and len(k) > 40 // K:
-#		if element > 1000 and len(k) > 40 // K:
 			if DEBUG_MODE:
 				print(f'{k}::{element}', end=", ")
 				print(f'')
@@ -85,8 +83,6 @@ def generate_Number_List_to_encoded_Str_Dict(S_List, K):
 	for short_Str, long_Str in zip(low_freq_short_len, high_freq_long_len):
 		g_Dict_for_encoded_Str[short_Str] = long_Str
 		g_Dict_for_encoded_Str[long_Str] = short_Str
-#		g_Dict_for_encoded_Str[short_Str] = short_Str
-#		g_Dict_for_encoded_Str[long_Str] = long_Str
 
 	if DEBUG_MODE:
 		print('g_Dict_for_encoded_Str')
