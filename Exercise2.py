@@ -16,8 +16,6 @@ DEBUG_MODE = False
 NUMBERS_TO_SHOW = 20
 
 g_Dict_for_encoded_Str = {}
-g_Count = 0
-g_Count2 = 0
 def convert_Number_to_unary_format_Str(q):
 	str = ['1' for _ in range(q) ]
 	str.append('0')
@@ -33,15 +31,14 @@ def encode_Number_to_encoded_Str_List(S, K):
 	return encoded_list
 
 def encode_Number_to_encoded_Str(S, K):
-	global g_Count
-	encoded_Str = "".join(encode_Number_to_encoded_Str_List(S, K))
+	encoded_Str_List = encode_Number_to_encoded_Str_List(S, K)
+	encoded_Str = "".join(encoded_Str_List)
 	if encoded_Str in g_Dict_for_encoded_Str:
 		prev_encoded_Str = encoded_Str
 		encoded_Str = g_Dict_for_encoded_Str[prev_encoded_Str]
-		if DEBUG_MODE and g_Count % 10 == 0:
+		if DEBUG_MODE:
 			print('encoding in g_Dict')
 			print(f'{prev_encoded_Str} -> {encoded_Str}')
-			g_Count = g_Count + 1
 	return encoded_Str
 
 def encode_Number_List_to_encoded_Str(S_List, K):
@@ -63,53 +60,38 @@ def generate_Number_List_to_encoded_Str_Dict(S_List, K):
 	c = Counter(encoded_List)
 	if DEBUG_MODE:
 		print(c)
-	print("-"*30)
-	if False:
-		for k in sorted(c.keys()):
-			element = c[k]
-			print(f'{k}:{element}', end=", ")
-		print(f'')
 		print("-"*30)
-		count_for_target = 0
-		for i in range(1000000):
-			encoded_Str = encode_Number_to_encoded_Str(i, K)
-			if encoded_Str not in c:
-				print(f'{encoded_Str} not in c')
-				count_for_target = count_for_target + 1
-				if count_for_target == 5:
-					break
-		print("-"*30)
-
 	low_freq_short_len = []
 	for k in sorted(c.keys()):
 		element = c[k]
 		if element < 3000 and len(k) < 40 // K:
 #		if element < 1000 and len(k) < 40 // K:
-			print(f'{k}:{element}', end=", ")
+			if DEBUG_MODE:
+				print(f'{k}:{element}', end=", ")
+				print(f'')
+				print("="*30)
+
 			low_freq_short_len.append(k)
-	print(f'')
-	print("="*30)
 	high_freq_long_len = []
 	for k in sorted(c.keys(), reverse=True):
 		element = c[k]
 		if element > 10000 and len(k) > 40 // K:
 #		if element > 1000 and len(k) > 40 // K:
-			print(f'{k}::{element}', end=", ")
+			if DEBUG_MODE:
+				print(f'{k}::{element}', end=", ")
+				print(f'')
+				print("-"*30)
 			high_freq_long_len.append(k)
-	print(f'')
-	print("-"*30)
-	min_len = min(len(low_freq_short_len), len(high_freq_long_len))
-#	for short_Str, long_Str, _ in zip(low_freq_short_len, high_freq_long_len, range(1)):
 	for short_Str, long_Str in zip(low_freq_short_len, high_freq_long_len):
-		pass
 		g_Dict_for_encoded_Str[short_Str] = long_Str
 		g_Dict_for_encoded_Str[long_Str] = short_Str
 #		g_Dict_for_encoded_Str[short_Str] = short_Str
 #		g_Dict_for_encoded_Str[long_Str] = long_Str
 
-	print('g_Dict_for_encoded_Str')
-	print(g_Dict_for_encoded_Str)
-	print(f'')
+	if DEBUG_MODE:
+		print('g_Dict_for_encoded_Str')
+		print(g_Dict_for_encoded_Str)
+		print(f'')
 
 def encode_File_to_Unaligned_Str(filename, K):
 	with open(filename, 'rb') as file:
@@ -183,7 +165,6 @@ def decode_to_List(encoded_str, K, decoded_List):
 		starting_index = q + 1 + K 
 
 def decode_to_Byte_List2(encoded_str, K):
-	global g_Count2
 	decoded_List = []
 	m = pow(2, K)
 	starting_index = 0
@@ -199,9 +180,8 @@ def decode_to_Byte_List2(encoded_str, K):
 		if encoded_str[starting_index: q + 1 + K] in g_Dict_for_encoded_Str:
 			original_Str = encoded_str[starting_index: q + 1 + K]
 			new_Str = g_Dict_for_encoded_Str[original_Str]
-			if DEBUG_MODE and g_Count2 < 30  and len(encoded_str[starting_index: q + 1 + K]) > 20:
+			if DEBUG_MODE and len(encoded_str[starting_index: q + 1 + K]) > 20:
 				print(f'decoding {encoded_str[starting_index: q + 1 + K]} =====> {new_Str}')
-				g_Count2 = g_Count2 + 1
 			new_q = new_Str.find('0')
 			new_r_str = new_Str[new_q + 1:new_q + 1 + K]	
 			new_r = eval('0b' + new_r_str)
@@ -250,8 +230,9 @@ def decode_File_to_File(source_filename, destination_filename, K):
 	print("making String finished")
 	Byte_List = decode_to_Byte_List2(encoded_Str, K)
 
-	print(f'{Byte_List[:NUMBERS_TO_SHOW]}')
-	print(f'{Byte_List[-NUMBERS_TO_SHOW:]}')
+	if DEBUG_MODE:
+		print(f'{Byte_List[:NUMBERS_TO_SHOW]}')
+		print(f'{Byte_List[-NUMBERS_TO_SHOW:]}')
 
 	with open(destination_filename, 'wb') as binary_file:
 		binary_file.write( bytearray(Byte_List) )		
@@ -292,14 +273,15 @@ for original_wav_filename in ['Sound1.wav', 'Sound2.wav']:
 		encoded_filename = original_wav_filename.split('.')[0] + '_Enc' + '.ex2'
 		decoded_filename = original_wav_filename.split('.')[0] + '_EncDec' + '.wav' 
 		g_Dict_for_encoded_Str = {}	
-		g_Count = 0
-		g_Count2 = 0
 		encode_File_to_File(original_wav_filename, encoded_filename, K)
 		pkl_filename = 'data.pkl'
 		with open(pkl_filename, 'wb') as fp:
 			pickle.dump(g_Dict_for_encoded_Str, fp)
-		print(f'pickle data {os.path.getsize(pkl_filename)}')
-		print(f'end Encoding {K}: {original_wav_filename} {os.path.getsize(original_wav_filename)}-> {encoded_filename} {os.path.getsize(encoded_filename)}')
+		print(f'{original_wav_filename}, {K} pickle data {os.path.getsize(pkl_filename)}')
+
+		original_wav_filesize = os.path.getsize(original_wav_filename)
+		encoded_file_filesize = os.path.getsize(encoded_filename)
+		print(f'end Encoding {K}: {original_wav_filename} {original_wav_filesize}-> {encoded_filename} {encoded_file_filesize}')
 		with open(pkl_filename, 'rb') as fp:
 			g_Dict_for_encoded_Str = pickle.load(fp)
 		decode_File_to_File(encoded_filename, decoded_filename, K)
