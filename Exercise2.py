@@ -50,10 +50,13 @@ def encode_Number_List_to_encoded_Str(S_List, K):
 	return "".join(encoded_List)
 
 
-def generate_Number_List_to_encoded_Str_Dict(S_List, K):
+def generate_Number_List_to_encoded_Str_Dict(S_List, K, use_STR_REPLACE):
 	global g_Dict_for_encoded_Str
 	g_Dict_for_encoded_Str = {}
 	encoded_List = []
+
+	if not use_STR_REPLACE:
+		return
 
 	for i, S in enumerate(S_List):
 		encoded_List.append(encode_Number_to_encoded_Str(S, K))
@@ -91,7 +94,7 @@ def generate_Number_List_to_encoded_Str_Dict(S_List, K):
 		print(g_Dict_for_encoded_Str)
 		print(f'')
 
-def encode_File_to_Unaligned_Str(filename, K):
+def encode_File_to_Unaligned_Str(filename, K, use_STR_REPLACE):
 	with open(filename, 'rb') as file:
 		byteBuffer = bytearray(file.read())
 	if DEBUG_MODE:
@@ -101,11 +104,12 @@ def encode_File_to_Unaligned_Str(filename, K):
 		for i in range(NUMBERS_TO_SHOW):
 			print(f'byte[{i-NUMBERS_TO_SHOW}]: {byteBuffer[i-NUMBERS_TO_SHOW]}')	
 
-	generate_Number_List_to_encoded_Str_Dict(byteBuffer, K)
+
+	generate_Number_List_to_encoded_Str_Dict(byteBuffer, K, use_STR_REPLACE)
 	return encode_Number_List_to_encoded_Str(byteBuffer, K)
 
-def encode_File_to_File(source_filename, destination_filename, K):
-	encoded_Str = encode_File_to_Unaligned_Str(source_filename, K)
+def encode_File_to_File(source_filename, destination_filename, K, use_STR_REPLACE):
+	encoded_Str = encode_File_to_Unaligned_Str(source_filename, K, use_STR_REPLACE)
 	if not encoded_Str:
 		print(f'No encoded String')
 		return False
@@ -277,33 +281,38 @@ decoded_filename = 'old.wav'
 
 for original_wav_filename in ['Sound1.wav', 'Sound2.wav']:
 #for original_wav_filename in ['Sound1.wav']:
-	for K in [2, 4]:
+	for K in [4, 2]:
 #	for K in [2]:
-		encoded_filename = original_wav_filename.split('.')[0] + '_Enc' + '.ex2'
-		decoded_filename = original_wav_filename.split('.')[0] + '_EncDec' + '.wav' 
-#		g_Dict_for_encoded_Str = {}
+		encoded_filesize_list = []
+		for use_STR_REPLACE in [False, True]:
+			encoded_filename = original_wav_filename.split('.')[0] + '_Enc' + '.ex2'
+			decoded_filename = original_wav_filename.split('.')[0] + '_EncDec' + '.wav' 
 	
-		encode_File_to_File(original_wav_filename, encoded_filename, K)
-		pkl_filename = 'data.pkl'
-#		with open(pkl_filename, 'wb') as fp:
-#			pickle.dump(g_Dict_for_encoded_Str, fp)
-		generate_PKL_File(pkl_filename)
-#		print(f'{original_wav_filename}, {K} pickle data {os.path.getsize(pkl_filename)}')
+			encode_File_to_File(original_wav_filename, encoded_filename, K, use_STR_REPLACE)
+			if use_STR_REPLACE:
+				pkl_filename = 'data.pkl'
+				generate_PKL_File(pkl_filename)
 
-		original_wav_filesize = os.path.getsize(original_wav_filename)
-		encoded_file_filesize = os.path.getsize(encoded_filename)
-		print(f'end Encoding {K}: {original_wav_filename} {original_wav_filesize}-> {encoded_filename} {encoded_file_filesize}')
-#		with open(pkl_filename, 'rb') as fp:
-#			g_Dict_for_encoded_Str = pickle.load(fp)
-		retrieve_from_PKL_File(pkl_filename)
-		decode_File_to_File(encoded_filename, decoded_filename, K)
-		print('end Decoding')
+			original_wav_filesize = os.path.getsize(original_wav_filename)
+			encoded_file_filesize = os.path.getsize(encoded_filename)
+			if not use_STR_REPLACE:
+				encoded_filesize_list.append(original_wav_filesize)
+			encoded_filesize_list.append(encoded_file_filesize + (os.path.getsize(pkl_filename) if use_STR_REPLACE else 0))
+			print(f'end Encoding {K} {use_STR_REPLACE}: {original_wav_filename} {original_wav_filesize}-> {encoded_filename} {encoded_file_filesize}')
+			if use_STR_REPLACE:
+				retrieve_from_PKL_File(pkl_filename)
+			decode_File_to_File(encoded_filename, decoded_filename, K)
+			print('end Decoding')
 
-		if compare_Binary_Files(original_wav_filename, decoded_filename):
-			print(f'same files {original_wav_filename} {decoded_filename}')
-		else:
-			print(f'different files {original_wav_filename} {decoded_filename}')
+			if compare_Binary_Files(original_wav_filename, decoded_filename):
+				print(f'same files {original_wav_filename} {decoded_filename}')
+			else:
+				print(f'different files {original_wav_filename} {decoded_filename}')
 
+		Filesize_original, Filesize_without_Replace, Filesize_with_Replace = encoded_filesize_list
+		compression_rate = (Filesize_original - Filesize_without_Replace)/Filesize_original*100
+		new_compression_rate = (Filesize_original - Filesize_with_Replace)/Filesize_original*100
+		print(f'compression_rate: {compression_rate}%->{new_compression_rate}% {encoded_filesize_list}')
 
 
 
