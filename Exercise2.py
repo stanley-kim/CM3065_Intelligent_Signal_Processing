@@ -52,7 +52,9 @@ def encode_Number_List_to_encoded_Str(S_List, K):
 
 def generate_Number_List_to_encoded_Str_Dict(S_List, K):
 	global g_Dict_for_encoded_Str
+	g_Dict_for_encoded_Str = {}
 	encoded_List = []
+
 	for i, S in enumerate(S_List):
 		encoded_List.append(encode_Number_to_encoded_Str(S, K))
 		if DEBUG_MODE and i == 20:
@@ -193,7 +195,8 @@ def decode_File_to_File(source_filename, destination_filename, K):
 	m = pow(2, K)
 	with open(source_filename, 'rb') as file:
 		byteBuffer = bytearray(file.read())
-	print("reading finished")
+	if DEBUG_MODE:
+		print("reading finished")
 	encoded_Str_List = [] 
 	for i, byte in enumerate(byteBuffer):
 		if DEBUG_MODE:
@@ -223,7 +226,8 @@ def decode_File_to_File(source_filename, destination_filename, K):
 		#print(f'{starting_index}', end=" ")
 #	print(f'encoded_Str: {encoded_Str} / Length {len(encoded_Str)}')	
 
-	print("making String finished")
+	if DEBUG_MODE:
+		print("making String finished")
 	Byte_List = decode_to_Byte_List2(encoded_Str, K)
 
 	if DEBUG_MODE:
@@ -247,6 +251,15 @@ def compare_Binary_Files(filename0, filename1):
 			return False
 	return True
 
+def generate_PKL_File(PKL_FILENAME):
+	with open(pkl_filename, 'wb') as fp:
+		pickle.dump(g_Dict_for_encoded_Str, fp)
+	print(f'{original_wav_filename}, {K} pickle data {os.path.getsize(pkl_filename)}')
+
+def retrieve_from_PKL_File(PKL_FILENAME):
+	global g_Dict_for_encoded_Str
+	with open(PKL_FILENAME, 'rb') as fp:
+		g_Dict_for_encoded_Str = pickle.load(fp) 
 
 S0 = 0b00010011
 S1 = 0b00010011
@@ -268,18 +281,21 @@ for original_wav_filename in ['Sound1.wav', 'Sound2.wav']:
 #	for K in [2]:
 		encoded_filename = original_wav_filename.split('.')[0] + '_Enc' + '.ex2'
 		decoded_filename = original_wav_filename.split('.')[0] + '_EncDec' + '.wav' 
-		g_Dict_for_encoded_Str = {}	
+#		g_Dict_for_encoded_Str = {}
+	
 		encode_File_to_File(original_wav_filename, encoded_filename, K)
 		pkl_filename = 'data.pkl'
-		with open(pkl_filename, 'wb') as fp:
-			pickle.dump(g_Dict_for_encoded_Str, fp)
-		print(f'{original_wav_filename}, {K} pickle data {os.path.getsize(pkl_filename)}')
+#		with open(pkl_filename, 'wb') as fp:
+#			pickle.dump(g_Dict_for_encoded_Str, fp)
+		generate_PKL_File(pkl_filename)
+#		print(f'{original_wav_filename}, {K} pickle data {os.path.getsize(pkl_filename)}')
 
 		original_wav_filesize = os.path.getsize(original_wav_filename)
 		encoded_file_filesize = os.path.getsize(encoded_filename)
 		print(f'end Encoding {K}: {original_wav_filename} {original_wav_filesize}-> {encoded_filename} {encoded_file_filesize}')
-		with open(pkl_filename, 'rb') as fp:
-			g_Dict_for_encoded_Str = pickle.load(fp)
+#		with open(pkl_filename, 'rb') as fp:
+#			g_Dict_for_encoded_Str = pickle.load(fp)
+		retrieve_from_PKL_File(pkl_filename)
 		decode_File_to_File(encoded_filename, decoded_filename, K)
 		print('end Decoding')
 
