@@ -4,7 +4,7 @@
     To create a web-based audio application using p5.js
     The application should include the following effects: low-pass filter, waveshaper distortion, dynamic compressor, reverb and master volume.
 ### 2. Result
-    2.1 The Application's Screencase Recording
+    2.1 The Application's Screencast Recording
 [<img src="./images/Exercise1_Screenshot.png" width="25%">](https://1drv.ms/v/s!AsExfQG4uXz8g-kUgUou8QTb8Qs8Tw?e=AhsD7m "Web-based Audio Application")
 
     2.2 The Description of Playback Controls 
