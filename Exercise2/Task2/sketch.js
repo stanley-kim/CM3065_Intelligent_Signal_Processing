@@ -1,5 +1,3 @@
-//this application is based on the 4.108 Exercise 8 Real-time audio visualisations with JavaScript
-
 var mySound;
 var playStopButton;
 var jumpButton;
@@ -11,28 +9,30 @@ var fft;
 
 var analyzer;
 
-var rms_Length = 0; 
-var spectralCentroid_Size = 0;
-var spectralRolloff_Color = 0;
+var rms_Row; 
+var spectralCentroid_Size;
+var spectralRolloff_Color;
 
-var zcr_Color = 0;
-var spectralFlatness_Width = 0;
-var spectralSpread_Alpha = 0;
+var zcr_Color;
+var spectralFlatness_Width;
+var spectralSpread_Alpha;
 
 var myRec;
 
-var set_bgcolor;
-var bgcolor = 0;
+var bgcolor_map;
+
 function preload() {
 //  soundFormats('wav', 'mp3');
   soundFormats('mp3');
+
+//  mySound = loadSound('/sounds/233709__x86cam__130bpm-32-beat-loop_v2');
+//  mySound = loadSound('/sounds/Ex2_sound1');
   mySound = loadSound('/sounds/Kalte_Ohren_(_Remix_)');
 }
 
 function setup() {
-  createCanvas(420, 500);
-  bgcolor = 'gray'
-  //background(bgcolor);
+  createCanvas(400, 400);
+  background(180);
     
   playStopButton = createButton('play');
   playStopButton.position(200, 20);
@@ -50,13 +50,14 @@ function setup() {
   
   fft = new p5.FFT(0.2, 2048);
 
+  circleSize = 0;
   if(typeof Meyda === "undefined") {
     console.log("Meyda could not be found!");
   } else {
     analyzer = Meyda.createMeydaAnalyzer({
       "audioContext": getAudioContext(),
       "source": mySound,
-      "bufferSize": 512, 
+      "bufferSize": 512, //44100 / 512 86? 
       "featureExtractors": [
         "rms", 
         "zcr",
@@ -70,45 +71,46 @@ function setup() {
       ],
 
       "callback": features => {
-//        console.log(features);
-        rms_Length = features.rms * 3000;
-        spectralCentroid_Size = map(features.spectralCentroid, 0, 44100 / 500, 0, 200);
+        console.log(features);
+        rms_Row = features.rms * 3000;
+        spectralCentroid_Size = features.spectralCentroid * 2;
         spectralRolloff_Color = map(features.spectralRolloff, 0, 44100 / 2, 0, 255); 
         zcr_Color = map(features.zcr, 0, 255, 0, 255);
         spectralFlatness_Width = map(features.spectralFlatness, 0, 1, 1, 100);
+//        spectralSpread_Alpha = map(features.spectralSpread, 0, 512, 0, 255);
         spectralSpread_Alpha = (features.spectralSpread * 4) % 256;
+//        console.log(spectralSpread_Alpha);
       }
     });
   }
 
 
-  set_bgcolor = createStringDict({
-    'black': true,
-    'white': true,
-    'red': true,
-    'gray': true
-  });
+ let obj = {
+    'black': 'black',
+    'white': 'white',
+    'red': 'red'  
+  };
+  bgcolor_map = createStringDict(obj);
 
-  myRec = new p5.SpeechRec('en-US', parseWords);
+  myRec = new p5.SpeechRec('en-US', parseResult);
   myRec.continuous = true;
   myRec.interimResults = true;
   myRec.start();
   console.log('Speech Recognition Start');
 }
 
-function parseWords() {
-  var mostrecentword = myRec.resultString.split(' ').pop().toLowerCase();
+function parseResult() {
+  var mostrecentword = myRec.resultString.split(' ').pop();
   console.log(mostrecentword);
 
-  if (set_bgcolor.hasKey(mostrecentword)) 
-    bgcolor = mostrecentword;
+  if (bgcolor_map.hasKey(mostrecentword)) {
+    console.log(bgcolor_map[mostrecentword]);
+    background(bgcolor_map[mostrecentword]);
+  }
+
 }
 function draw() {
-  background(bgcolor);
-  fill('blue');
-  rect(300, 480, 80, 20);
-  fill('white');
-  text('bgcolor: ' + bgcolor, 300, 492);    
+  //background(180, 100);
 
   fill(0);
   text('volume', 80,20);
@@ -136,34 +138,49 @@ function draw() {
   }
   pop();
     
+  //fill(30, 30, 255, 200);
+  //fill(spectralCentroid_Color, 300, 255);
+  let treble = fft.getEnergy("treble");
+  let lowMid = fft.getEnergy("lowMid");
+  let mid = fft.getEnergy("mid");
+  let highMid = fft.getEnergy("highMid");
+  //arc(200, 275, circleSize, circleSize, 0, HALF_PI);
+  ///rect(50, 275, 50, rms_Row);
   noStroke();
-  text('RMS:', 20,250);
-  text('Num of Rects', 20,260);
-  fill('blue');
-  for(let i=0; (70 * i) < rms_Length ;++i) 
-    rect(20, 280 + 10 * i , 50, 8); 
-  
-  noStroke();
-  fill('black');
-  text('spectralRolloff: Color', 105,250);
-  text('spectralCentroid: Rect Size', 105,270);
-  fill(spectralRolloff_Color, 255 - spectralRolloff_Color, (spectralRolloff_Color * 5) % 255);
-  rect(100, 280, 50, spectralCentroid_Size);
+  if(rms_Row > 0)
+    rect(50, 270, 50, 10);
+  if(rms_Row > 100)
+    rect(50, 290, 50, 10);
+  if(rms_Row > 2 * 100)
+    rect(50, 310, 50, 10);
+  if(rms_Row > 3 * 100)
+    rect(50, 330, 50, 10);
+  if(rms_Row > 4 * 100)
+    rect(50, 350, 50, 10);
 
-  fill('black');
-  text('spectralSpread: Color Opacity', 245,250);
+  fill(spectralRolloff_Color, 300, 255);
+  rect(120, 270, 50, spectralCentroid_Size);
+
+  stroke(zcr_Color, 300, 255);
+  strokeWeight(spectralFlatness_Width);
+  rect(190, 270, 50, 50);
+  noStroke();
+
+//  spectralSpread_Alpha
   var new_color = color(100, 50, 100);
   new_color.setAlpha(spectralSpread_Alpha);
   fill(new_color);
-  rect(300, 265, 50, 50);  
-  
-  fill('black');
-  text('ZCR: Border Color', 235,360);
-  text('spectralFlatness: Border Size', 235,380);
-  stroke((zcr_Color * 10) % 255, (zcr_Color * 5) % 255, (zcr_Color * 2) % 255);
-  strokeWeight(spectralFlatness_Width);
-  rect(300, 410, 20, 20);
-  noStroke();
+  rect(250, 270, 50, 50);  
+
+/*
+  arc(200, 275, treble, treble, 0, HALF_PI);
+  fill(100, 55, 255, 200);
+  arc(200, 275, lowMid, lowMid, HALF_PI, PI);
+  fill(55, 100, 255, 200);
+  arc(200, 275, mid, mid, PI, PI+HALF_PI);
+  fill(130, 130, 255, 200);
+  arc(200, 275, highMid, highMid, PI+HALF_PI, 2*PI);
+  */
 }
 
 function jumpSong() {
@@ -179,6 +196,7 @@ function playStopSound() {
       analyzer.stop();
       //mySound.pause();
       playStopButton.html('play');
+      //background(180);
     } else {
       //mySound.play();
       mySound.loop();
